@@ -5,21 +5,31 @@
     <title>Salad - AI Bit Trader</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="#" />
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
     />
     <link rel="stylesheet" href="../static/styles.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.3.0/luxon.min.js"
+      integrity="sha512-2j5fkjQ4q5ceXgfxi+kqrU2Oz234MrpyywZsQz1F5OGnfat7mOhjRr0oz5cpQ+YwwWB+hhDBSyxNGuL/tKWMFw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@0.2.1"></script>
+    <script src="{{url_for('static', filename='chartjs-chart-financial.js')}}"></script>
   </head>
   <body>
     <div class="jumbotron text-center">
-      <h1>Bit Trader</h1>
-      <form class="form-inline">
+      <h1 class="title">Bit Trader</h1>
+      <form class="tickerForm form-inline">
         <div class="input-group">
           <input
-            name="buy_price"
+            name="ticker"
             type="text"
             class="form-control"
             size="50"
@@ -27,22 +37,22 @@
             required
           />
           <div class="input-group-btn">
-            <button type="button" class="btn btn-danger">그래프 확인</button>
+            <button type="submit" class="btn btn-danger">그래프 확인</button>
           </div>
         </div>
       </form>
     </div>
     <div class="container text-center">
       <h2>사용 방법</h2>
-      <p>거래 하고 싶은 코인 코드를 입력 후 버튼을 눌러주세요</p>
+      <p class="description">
+        거래 하고 싶은 코인 코드를 입력 후 버튼을 눌러주세요
+      </p>
     </div>
 
     <!-- 그래프 자리 -->
     <div class="row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-5 chart"></div>
-      <div class="col-sm-5 pred"></div>
-      <div class="col-sm-1"></div>
+      <div class="col-md-12 pastChartTemplate"></div>
     </div>
+    <script src="{{url_for('static', filename='index.js')}}"></script>
   </body>
 </html>

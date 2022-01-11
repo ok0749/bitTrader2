@@ -5,3 +5,7 @@ body {
   background-color: #f4511e;
   color: #fff;
 }
+
+.title {
+  margin-bottom: 3rem;
+}
