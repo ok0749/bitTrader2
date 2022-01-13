@@ -35,10 +35,10 @@ def get_pred_price(ticker, count):
     model = load("./model/lightgbm.joblib")
     past_price_df = get_past_price(ticker, count)[["open"]].T
     last_past_price = past_price_df.iloc[:, -1].open
-    idx = past_price_df.columns[-1]
-    pred_prices = last_past_price * model.predict(past_price_df)[0]
+    last_time = past_price_df.columns[-1]
+    pred_prices_ndarray = last_past_price * model.predict(past_price_df)[0]
 
-    return pred_prices, idx
+    return pred_prices_ndarray, last_time
 
 
 if __name__ == "__main__":
