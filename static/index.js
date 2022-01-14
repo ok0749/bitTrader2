@@ -3,29 +3,19 @@ const pastChartTemplate = document.querySelector(".pastChartTemplate");
 const predChartTemplate = document.querySelector(".predChartTemplate");
 const description = document.querySelector(".description");
 
+function removeAllChild(node) {
+  while (node.firstChild) {
+    node.removeChild(node.lastChild);
+  }
+}
+
 function paintPastChart(ticker, data) {
+  removeAllChild(pastChartTemplate);
   pastChartTemplate.insertAdjacentHTML(
     "beforeend",
     `<canvas id="pastChart" width="2" height="1"></canvas>`
   );
   const ctx = document.querySelector("#pastChart");
-  // candle stick
-  //   const pastChart = new Chart(ctx, {
-  //     type: "candlestick",
-  //     data: {
-  //       datasets: [
-  //         {
-  //           label: ticker + " 1380분 과거 데이터",
-  //           data: data.past_prices,
-  //         },
-  //       ],
-  //     },
-  //     options: {},
-  //   });
-  //   return pastChart;
-  // }
-
-  // line chart
   const pastChart = new Chart(ctx, {
     type: "line",
     data: {
@@ -37,6 +27,8 @@ function paintPastChart(ticker, data) {
           fill: false,
           borderColor: "blue",
           tension: 0.1,
+          pointRadius: 1,
+          pointHoverRadius: 1,
         },
       ],
     },
@@ -60,34 +52,14 @@ async function getPastPrice(ticker) {
 
 async function handlePastChart(ticker) {
   const pastChart = await getPastPrice(ticker);
+  const predBtn = document.querySelector(".predBtn");
+  if (predBtn) predBtn.remove();
   description.insertAdjacentHTML(
     "afterend",
     `<button class="predBtn btn btn-primary">예측하기</button>`
   );
   return pastChart;
 }
-
-// function paintPredChart(ticker, data) {
-//   predChartTemplate.insertAdjacentHTML(
-//     "beforeend",
-//     `<canvas id="predChart" width="2" height="1"></canvas>`
-//   );
-//     const ctx = document.querySelector("#predChart");
-//     // candle stick
-//   const predChart = new Chart(ctx, {
-//     type: "candlestick",
-//     data: {
-//       datasets: [
-//         {
-//           label: ticker + " 10분 예측 데이터",
-//           data: data.pred_prices,
-//         },
-//       ],
-//     },
-//     options: {},
-//   });
-//   return predChart;
-// }
 
 async function getPredPrice(ticker, pastChart) {
   const res = await fetch("/pred", {
@@ -99,14 +71,15 @@ async function getPredPrice(ticker, pastChart) {
     }),
   });
   const data = await res.json();
-  //   paintPredChart(ticker, data);
+  paintPredAtPastChartAndPredChart(data, ticker, pastChart);
+}
 
+function paintPredAtPastChart(data, ticker, pastChart) {
+  if (pastChart.data.datasets.length >= 2) pastChart.data.datasets.pop();
   let label = new Date(data.last_time).getTime();
   const labels = [];
-  for (const pred_price of data.pred_prices) {
-    // pastChart.data.datasets[0].data.push(pred_price);
-    // pastChart.data.labels.push(new Date(label).toUTCString());
-    labels.push(new Date(label).toUTCString());
+  for (const _ of data.pred_prices) {
+    labels.push(new Date(label).toUTCString().replace("GMT", "").trim());
     label += 60000;
   }
   pastChart.data.labels = pastChart.data.labels.concat(labels);
@@ -118,8 +91,74 @@ async function getPredPrice(ticker, pastChart) {
     fill: false,
     borderColor: "red",
     tension: 0.1,
+    pointRadius: 1,
+    pointHoverRadius: 1,
   });
   pastChart.update();
+}
+
+const wait = (timeToDelay) =>
+  new Promise((resolve) => setTimeout(resolve, timeToDelay));
+
+function paintPredChart(data, ticker, pastChart) {
+  removeAllChild(predChartTemplate);
+  predChartTemplate.insertAdjacentHTML(
+    "beforeend",
+    `<canvas id="predChart" width="2" height="1"></canvas>`
+  );
+  const ctx = document.querySelector("#predChart");
+  const predChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: pastChart.data.labels.slice(-15),
+      datasets: [
+        {
+          label: ticker + " 15분 예측 시가 데이터",
+          data: data.pred_prices,
+          fill: false,
+          borderColor: "red",
+          tension: 0.1,
+          pointRadius: 1,
+          pointHoverRadius: 1,
+        },
+        {
+          label: ticker + " 15분 실제 시가 데이터",
+          data: new Array(15),
+          fill: false,
+          borderColor: "blue",
+          tension: 0.1,
+          pointRadius: 1,
+          pointHoverRadius: 1,
+        },
+      ],
+    },
+    options: {},
+  });
+
+  return predChart;
+}
+
+async function paintRealAtPredChart(ticker, predChart, i) {
+  const res = await fetch("/real", {
+    method: "POST",
+    cache: "no-cache",
+    headers: {},
+    body: new URLSearchParams({
+      ticker,
+    }),
+  });
+  const data = await res.json();
+  predChart.data.datasets[1].data[i] = data.real_price;
+  predChart.update();
+  await wait(60 * 1000);
+}
+
+async function paintPredAtPastChartAndPredChart(data, ticker, pastChart) {
+  paintPredAtPastChart(data, ticker, pastChart);
+  const predChart = paintPredChart(data, ticker, pastChart);
+  for (let i = 0; i < 15; i++) {
+    await paintRealAtPredChart(ticker, predChart, i);
+  }
 }
 
 tickerForm.addEventListener("submit", async function (e) {
@@ -128,8 +167,5 @@ tickerForm.addEventListener("submit", async function (e) {
   const pastChart = await handlePastChart(ticker);
   const predBtn = document.querySelector(".predBtn");
 
-  predBtn.addEventListener(
-    "click",
-    async () => await getPredPrice(ticker, pastChart)
-  );
+  predBtn.addEventListener("click", () => getPredPrice(ticker, pastChart));
 });

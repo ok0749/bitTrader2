@@ -12,20 +12,11 @@
     />
     <link rel="stylesheet" href="../static/styles.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/luxon/2.3.0/luxon.min.js"
-      integrity="sha512-2j5fkjQ4q5ceXgfxi+kqrU2Oz234MrpyywZsQz1F5OGnfat7mOhjRr0oz5cpQ+YwwWB+hhDBSyxNGuL/tKWMFw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@0.2.1"></script>
-    <script src="{{url_for('static', filename='chartjs-chart-financial.js')}}"></script>
   </head>
   <body>
     <div class="jumbotron text-center">
-      <h1 class="title">Bit Trader</h1>
+      <h1 class="title">AI로 코인 예측</h1>
       <form class="tickerForm form-inline">
         <div class="input-group">
           <input
@@ -43,9 +34,13 @@
       </form>
     </div>
     <div class="container text-center">
-      <h2>사용 방법</h2>
-      <p class="description">
-        거래 하고 싶은 코인 코드를 입력 후 버튼을 눌러주세요
+      <h2>설명</h2>
+      <p class="description text-center">
+        1. 코인 심블 입력후 그래프 확인 클릭 -> 현재 시점에서 과거 1380분 데이터
+        그래프를 그립니다. <br />
+        2. 예측하기 클릭 -> 1380분 데이터를 통해 AI가 미래 15분 데이터를 예측해
+        그래프를 그립니다.<br />
+        3. 15분간 실제 그래프를 그립니다.
       </p>
     </div>
 
