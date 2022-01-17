@@ -31,9 +31,10 @@ def pred():
 @app.route("/real", methods=["POST"])
 def real():
     ticker = request.form.get("ticker")
+    time = get_past_price(ticker, 1)["open"].index.tolist()[0]
     real_price = get_past_price(ticker, 1)["open"].values.tolist()[0]
 
-    return jsonify({"real_price": real_price})
+    return jsonify({"real_price": real_price, "time": time})
 
 
 if __name__ == "__main__":

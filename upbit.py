@@ -34,13 +34,14 @@ def get_past_price(ticker, count):
 def get_pred_price(ticker, count):
     model = load("./model/lightgbm.joblib")
     past_price_df = get_past_price(ticker, count)[["open"]].T
-    last_past_price = past_price_df.iloc[:, -1].open
+    last_price = past_price_df.iloc[:, -1].open
     last_time = past_price_df.columns[-1]
-    pred_prices_ndarray = last_past_price * model.predict(past_price_df)[0]
+    pred_prices_ndarray = last_price * model.predict(past_price_df)[0]
 
     return pred_prices_ndarray, last_time
 
 
 if __name__ == "__main__":
     ticker = "KRW-BTC"
+    print(get_past_price(ticker, 15)["open"].index)
     print(get_past_price(ticker, 15)["open"].values)

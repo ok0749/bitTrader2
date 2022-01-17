@@ -9,14 +9,30 @@ function removeAllChild(node) {
   }
 }
 
-function paintPastChart(ticker, data) {
+const wait = (timeToDelay) =>
+  new Promise((resolve) => setTimeout(resolve, timeToDelay));
+
+async function getPastPrice(ticker) {
+  const res = await fetch("/past", {
+    method: "POST",
+    cache: "no-cache",
+    headers: {},
+    body: new URLSearchParams({
+      ticker,
+    }),
+  });
+  return await res.json();
+}
+
+async function paintPastChart(ticker) {
   removeAllChild(pastChartTemplate);
   pastChartTemplate.insertAdjacentHTML(
     "beforeend",
     `<canvas id="pastChart" width="2" height="1"></canvas>`
   );
-  const ctx = document.querySelector("#pastChart");
-  const pastChart = new Chart(ctx, {
+
+  const data = await getPastPrice(ticker);
+  const pastChart = new Chart(document.querySelector("#pastChart"), {
     type: "line",
     data: {
       labels: data.labels.map((x) => x.replace("GMT", "").trim()),
@@ -37,31 +53,30 @@ function paintPastChart(ticker, data) {
   return pastChart;
 }
 
-async function getPastPrice(ticker) {
-  const res = await fetch("/past", {
-    method: "POST",
-    cache: "no-cache",
-    headers: {},
-    body: new URLSearchParams({
-      ticker,
-    }),
-  });
-  const data = await res.json();
-  return paintPastChart(ticker, data);
+async function updatePastChart(ticker, pastChart, predBtn) {
+  while (predBtn.getAttribute("clicked") === "false") {
+    await wait(60 * 1000);
+    const data = await getRealPrice(ticker);
+    pastChart.data.labels.shift();
+    pastChart.data.labels.push(data.time.replace("GMT", "").trim());
+    pastChart.data.datasets[0].data.shift();
+    pastChart.data.datasets[0].data.push(data.real_price);
+    pastChart.update();
+  }
 }
 
 async function handlePastChart(ticker) {
-  const pastChart = await getPastPrice(ticker);
+  const pastChart = await paintPastChart(ticker);
   const predBtn = document.querySelector(".predBtn");
   if (predBtn) predBtn.remove();
   description.insertAdjacentHTML(
     "afterend",
-    `<button class="predBtn btn btn-primary">예측하기</button>`
+    `<button class="predBtn btn btn-primary" clicked=false>예측하기</button>`
   );
   return pastChart;
 }
 
-async function getPredPrice(ticker, pastChart) {
+async function getPredPrice(ticker) {
   const res = await fetch("/pred", {
     method: "POST",
     cache: "no-cache",
@@ -70,8 +85,7 @@ async function getPredPrice(ticker, pastChart) {
       ticker,
     }),
   });
-  const data = await res.json();
-  paintPredAtPastChartAndPredChart(data, ticker, pastChart);
+  return await res.json();
 }
 
 function paintPredAtPastChart(data, ticker, pastChart) {
@@ -97,17 +111,13 @@ function paintPredAtPastChart(data, ticker, pastChart) {
   pastChart.update();
 }
 
-const wait = (timeToDelay) =>
-  new Promise((resolve) => setTimeout(resolve, timeToDelay));
-
 function paintPredChart(data, ticker, pastChart) {
   removeAllChild(predChartTemplate);
   predChartTemplate.insertAdjacentHTML(
     "beforeend",
     `<canvas id="predChart" width="2" height="1"></canvas>`
   );
-  const ctx = document.querySelector("#predChart");
-  const predChart = new Chart(ctx, {
+  const predChart = new Chart(document.querySelector("#predChart"), {
     type: "line",
     data: {
       labels: pastChart.data.labels.slice(-15),
@@ -138,7 +148,7 @@ function paintPredChart(data, ticker, pastChart) {
   return predChart;
 }
 
-async function paintRealAtPredChart(ticker, predChart, i) {
+async function getRealPrice(ticker) {
   const res = await fetch("/real", {
     method: "POST",
     cache: "no-cache",
@@ -147,18 +157,25 @@ async function paintRealAtPredChart(ticker, predChart, i) {
       ticker,
     }),
   });
-  const data = await res.json();
-  predChart.data.datasets[1].data[i] = data.real_price;
-  predChart.update();
-  await wait(60 * 1000);
+  return await res.json();
 }
 
-async function paintPredAtPastChartAndPredChart(data, ticker, pastChart) {
-  paintPredAtPastChart(data, ticker, pastChart);
-  const predChart = paintPredChart(data, ticker, pastChart);
+async function paintRealAtPredChart(ticker, pastChart, predChart) {
   for (let i = 0; i < 15; i++) {
-    await paintRealAtPredChart(ticker, predChart, i);
+    const data = await getRealPrice(ticker);
+    predChart.data.datasets[1].data[i] = data.real_price;
+    pastChart.data.datasets[0].data.push(data.real_price);
+    predChart.update();
+    pastChart.update();
+    await wait(60 * 1000);
   }
+}
+
+async function paintPastAndPredChart(ticker, pastChart) {
+  const predData = await getPredPrice(ticker);
+  paintPredAtPastChart(predData, ticker, pastChart);
+  const predChart = paintPredChart(predData, ticker, pastChart);
+  await paintRealAtPredChart(ticker, pastChart, predChart);
 }
 
 tickerForm.addEventListener("submit", async function (e) {
@@ -166,6 +183,9 @@ tickerForm.addEventListener("submit", async function (e) {
   const ticker = this.ticker.value;
   const pastChart = await handlePastChart(ticker);
   const predBtn = document.querySelector(".predBtn");
-
-  predBtn.addEventListener("click", () => getPredPrice(ticker, pastChart));
+  predBtn.addEventListener("click", () => {
+    predBtn.setAttribute("clicked", true);
+    paintPastAndPredChart(ticker, pastChart);
+  });
+  await updatePastChart(ticker, pastChart, predBtn);
 });
