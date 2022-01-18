@@ -187,7 +187,10 @@ tickerForm.addEventListener("submit", async function (e) {
   e.preventDefault();
   const ticker = this.ticker.value.toUpperCase();
   const pastChart = await handlePastChart(ticker);
-  if (pastChart.message) return alert(pastChart.message);
+  if (pastChart.message) {
+    alert(pastChart.message);
+    window.location.reload();
+  }
   const predBtn = document.querySelector(".predBtn");
   predBtn.addEventListener("click", () => {
     predBtn.setAttribute("clicked", true);
