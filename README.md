@@ -9,6 +9,7 @@ Python 3.7.6
 Flask 1.1.2
 pyupbit 0.2.19
 joblib 1.0.1
+scikit-learn 0.24.1
 ```
 2. 모델(model.ipynb) 생성에 필요한 환경
 ```
