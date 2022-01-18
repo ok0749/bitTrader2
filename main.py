@@ -22,10 +22,23 @@ def past():
 @app.route("/pred", methods=["POST"])
 def pred():
     ticker = request.form.get("ticker")
+    # arima
+    # pred_df = get_pred_price(ticker, 1380)
+
+    # return jsonify(
+    #     {"times": pred_df.index.tolist(), "pred_prices": pred_df.values.tolist()}
+    # )
+
+    #
     pred_prices_ndarray, last_time = get_pred_price(ticker, 1380)
     pred_prices = pred_prices_ndarray.tolist()
 
-    return jsonify({"pred_prices": pred_prices, "last_time": last_time})
+    return jsonify(
+        {
+            "pred_prices": pred_prices,
+            "last_time": last_time,
+        }
+    )
 
 
 @app.route("/real", methods=["POST"])

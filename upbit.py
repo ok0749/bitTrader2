@@ -1,16 +1,7 @@
 import os
 import pyupbit
-from dotenv import load_dotenv
 from keras.models import load_model
 from joblib import load
-
-
-load_dotenv()
-
-access = os.environ.get("ACCESS")
-secret = os.environ.get("SECRET")
-
-upbit = pyupbit.Upbit(access, secret)
 
 # type 화폐 종목 반환
 def get_tickers(type):
@@ -32,9 +23,10 @@ def get_past_price(ticker, count):
 
 # 예측
 def get_pred_price(ticker, count):
-    model = load("./model/lightgbm.joblib")
+    model = load("./model/model_linear.joblib")
     past_price_df = get_past_price(ticker, count)[["open"]].T
     last_price = past_price_df.iloc[:, -1].open
+    past_price_df /= last_price
     last_time = past_price_df.columns[-1]
     pred_prices_ndarray = last_price * model.predict(past_price_df)[0]
 
@@ -42,6 +34,5 @@ def get_pred_price(ticker, count):
 
 
 if __name__ == "__main__":
-    ticker = "KRW-BTC"
-    print(get_past_price(ticker, 15)["open"].index)
-    print(get_past_price(ticker, 15)["open"].values)
+    # print(get_tickers("KRW"))
+    print(get_pred_price("KRW-BTC", 1380))

@@ -66,6 +66,8 @@ async function updatePastChart(ticker, pastChart, predBtn) {
 }
 
 async function handlePastChart(ticker) {
+  const canvas = predChartTemplate.querySelector("canvas");
+  if (canvas) canvas.remove();
   const pastChart = await paintPastChart(ticker);
   const predBtn = document.querySelector(".predBtn");
   if (predBtn) predBtn.remove();
@@ -96,6 +98,7 @@ function paintPredAtPastChart(data, ticker, pastChart) {
     labels.push(new Date(label).toUTCString().replace("GMT", "").trim());
     label += 60000;
   }
+  //   const labels = data.times.map((x) => x.replace("GMT", "").trim());
   pastChart.data.labels = pastChart.data.labels.concat(labels);
   pastChart.data.datasets.push({
     label: ticker + " 15분 미래 시가 데이터",
