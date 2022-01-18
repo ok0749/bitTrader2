@@ -1,6 +1,4 @@
-import os
 import pyupbit
-from keras.models import load_model
 from joblib import load
 
 # type 화폐 종목 반환
