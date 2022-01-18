@@ -32,6 +32,7 @@ async function paintPastChart(ticker) {
   );
 
   const data = await getPastPrice(ticker);
+  if (data.message) return data;
   const pastChart = new Chart(document.querySelector("#pastChart"), {
     type: "line",
     data: {
@@ -69,6 +70,7 @@ async function handlePastChart(ticker) {
   const canvas = predChartTemplate.querySelector("canvas");
   if (canvas) canvas.remove();
   const pastChart = await paintPastChart(ticker);
+  if (pastChart.message) return pastChart;
   const predBtn = document.querySelector(".predBtn");
   if (predBtn) predBtn.remove();
   description.insertAdjacentHTML(
@@ -183,8 +185,9 @@ async function paintPastAndPredChart(ticker, pastChart) {
 
 tickerForm.addEventListener("submit", async function (e) {
   e.preventDefault();
-  const ticker = this.ticker.value;
+  const ticker = this.ticker.value.toUpperCase();
   const pastChart = await handlePastChart(ticker);
+  if (pastChart.message) return alert(pastChart.message);
   const predBtn = document.querySelector(".predBtn");
   predBtn.addEventListener("click", () => {
     predBtn.setAttribute("clicked", true);

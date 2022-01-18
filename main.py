@@ -12,24 +12,19 @@ def home():
 @app.route("/past", methods=["POST"])
 def past():
     ticker = request.form.get("ticker")
-    past_price_df = get_past_price(ticker, 1380)
-    labels = past_price_df.index.tolist()
-    past_prices = past_price_df["open"].values.tolist()
+    try:
+        past_price_df = get_past_price(ticker, 1380)
+        labels = past_price_df.index.tolist()
+        past_prices = past_price_df["open"].values.tolist()
 
-    return jsonify({"past_prices": past_prices, "labels": labels})
+        return jsonify({"past_prices": past_prices, "labels": labels})
+    except:
+        return jsonify({"message": "유효하지 않은 코인 심블입니다."})
 
 
 @app.route("/pred", methods=["POST"])
 def pred():
     ticker = request.form.get("ticker")
-    # arima
-    # pred_df = get_pred_price(ticker, 1380)
-
-    # return jsonify(
-    #     {"times": pred_df.index.tolist(), "pred_prices": pred_df.values.tolist()}
-    # )
-
-    #
     pred_prices_ndarray, last_time = get_pred_price(ticker, 1380)
     pred_prices = pred_prices_ndarray.tolist()
 
