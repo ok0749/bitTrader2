@@ -1,6 +1,7 @@
 # bitTrader2
 
 콜백 지옥인 bitTrader 코드를 수정하기 보단 새로 만드는 것이 쉬울 것 같아 새로 코드, 기능을 정리하면서 새로 만들어보았다.
+http://ec2-54-167-77-140.compute-1.amazonaws.com:5000/
 </br>
 </br>
 
